@@ -1,8 +1,8 @@
 package com.example.accountdemo.controller;
 
 import com.example.accountdemo.domain.Account;
-import com.example.accountdemo.dto.AccountDto;
 import com.example.accountdemo.dto.CreateAccount;
+import com.example.accountdemo.dto.DeleteAccount;
 import com.example.accountdemo.service.AccountService;
 import com.example.accountdemo.service.RedisTestService;
 import jakarta.validation.Valid;
@@ -23,6 +23,17 @@ public class AccountController {
                 accountService.createAccount(
                 request.getUserId(),
                 request.getInitialBalance())
+        );
+    }
+
+    @DeleteMapping("/account")
+    public DeleteAccount.Response deleteAccount(
+            @RequestBody @Valid DeleteAccount.Request request
+    ) {
+        return DeleteAccount.Response.from(
+                accountService.deleteAccount(
+                        request.getUserId(),
+                        request.getAccountNumber())
         );
     }
 
