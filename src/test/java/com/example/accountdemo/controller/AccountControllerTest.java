@@ -1,17 +1,12 @@
 package com.example.accountdemo.controller;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import com.example.accountdemo.domain.Account;
 import com.example.accountdemo.dto.AccountDto;
 import com.example.accountdemo.dto.CreateAccount;
 import com.example.accountdemo.dto.DeleteAccount;
-import com.example.accountdemo.type.AccountStatus;
 import com.example.accountdemo.service.AccountService;
 import com.example.accountdemo.service.RedisTestService;
+import com.example.accountdemo.type.AccountStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +16,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AccountController.class)
 class AccountControllerTest {
@@ -51,10 +54,10 @@ class AccountControllerTest {
 
         // then
         mockMvc.perform(post("/account")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(
-                        new CreateAccount.Request(3333L, 1111L)
-                    )))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new CreateAccount.Request(3333L, 1111L)
+                        )))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1))
                 .andExpect(jsonPath("$.accountNumber").value("1234567890"))
@@ -106,5 +109,37 @@ class AccountControllerTest {
                 .andExpect(jsonPath("$.userId").value(1))
                 .andExpect(jsonPath("$.accountNumber").value("1234567890"))
                 .andDo(print());
+    }
+
+    @Test
+    void successGetAccountsByUserId() throws Exception {
+        //given
+        List<AccountDto> accountDtoList =
+                Arrays.asList(
+                        AccountDto.builder()
+                                .accountNumber("1234567890")
+                                .balance(10000L)
+                                .build(),
+                        AccountDto.builder()
+                                .accountNumber("1111111111")
+                                .balance(10000L)
+                                .build(),
+                        AccountDto.builder()
+                                .accountNumber("22222222222")
+                                .balance(10000L)
+                                .build()
+                );
+        given(accountService.getAccountByUserId(anyLong()))
+                .willReturn(accountDtoList);
+        // when
+        // then
+        mockMvc.perform(get("/account?user_id=1"))
+                .andDo(print())
+                .andExpect(jsonPath("$[0].accountNumber").value("1234567890"))
+                .andExpect(jsonPath("$[0].balance").value(10000))
+                .andExpect(jsonPath("$[1].accountNumber").value("1111111111"))
+                .andExpect(jsonPath("$[1].balance").value(10000))
+                .andExpect(jsonPath("$[2].accountNumber").value("22222222222"))
+                .andExpect(jsonPath("$[2].balance").value(10000));
     }
 }
