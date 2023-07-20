@@ -1,6 +1,8 @@
 package com.example.accountdemo.domain;
 
+import com.example.accountdemo.exception.AccountException;
 import com.example.accountdemo.type.AccountStatus;
+import com.example.accountdemo.type.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -38,4 +40,10 @@ public class Account {
     @LastModifiedBy
     private LocalDateTime updatedAt;
 
+    public void useBalance(Long amount) {
+        if (amount > balance) {
+            throw new AccountException(ErrorCode.AMOUNT_EXCEED_BALANCE);
+        }
+        balance -= amount;
+    }
 }
