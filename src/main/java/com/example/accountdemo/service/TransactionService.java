@@ -52,8 +52,6 @@ public class TransactionService {
                 .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
 
         validateUseBalance(user, account, amount);
-
-        Long accountBalance = account.getBalance();
         account.useBalance(amount);
 
 
@@ -63,7 +61,7 @@ public class TransactionService {
     }
 
     private void validateUseBalance(AccountUser user, Account account, Long amount) {
-        if (Objects.equals(user.getId(), account.getAccountUser().getId())) {
+        if (!Objects.equals(user.getId(), account.getAccountUser().getId())) {
             throw new AccountException(ErrorCode.USER_ACCOUNT_UN_MATCH);
         }
         if (account.getAccountStatus() != AccountStatus.IN_USE) {
@@ -75,7 +73,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public void savaFailedUseTransaction(String accountNumber, Long amount) {
+    public void saveFailedUseTransaction(String accountNumber, Long amount) {
         Account account = accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
 

@@ -4,7 +4,7 @@ Content-Type: application/json
 
 {
   "userId": 1,
-  "initialBalance": 1000
+  "initialBalance": 123450
 }
 
 
@@ -20,3 +20,4 @@ Content-Type: application/json
 ### GET request with a header
 GET http://localhost:8080/account?user_id=1
 Accept: application/json
+

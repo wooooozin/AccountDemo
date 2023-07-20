@@ -38,11 +38,11 @@ public class TransactionController {
         } catch (AccountException e) {
             log.error("Failed to use balance");
 
-            transactionService.savaFailedUseTransaction(
+            transactionService.saveFailedUseTransaction(
                     request.getAccountNumber(),
                     request.getAmount()
             );
-
+            log.error(e.getErrorMessage());
             throw e;
         }
     }
