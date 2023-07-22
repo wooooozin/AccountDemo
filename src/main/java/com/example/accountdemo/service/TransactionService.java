@@ -9,8 +9,8 @@ import com.example.accountdemo.repository.AccountRepository;
 import com.example.accountdemo.repository.AccountUserRepository;
 import com.example.accountdemo.repository.TransactionRepository;
 import com.example.accountdemo.type.AccountStatus;
-import com.example.accountdemo.type.ErrorCode;
 import com.example.accountdemo.type.TransactionResultType;
+import com.example.accountdemo.type.TransactionType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,10 +20,10 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.example.accountdemo.type.ErrorCode.ACCOUNT_NOT_FOUND;
-import static com.example.accountdemo.type.ErrorCode.USER_NOT_FOUND;
+import static com.example.accountdemo.type.ErrorCode.*;
 import static com.example.accountdemo.type.TransactionResultType.F;
 import static com.example.accountdemo.type.TransactionResultType.S;
+import static com.example.accountdemo.type.TransactionType.CANCEL;
 import static com.example.accountdemo.type.TransactionType.USE;
 
 @Slf4j
@@ -56,19 +56,19 @@ public class TransactionService {
 
 
         return TransactionDto.fromEntity(
-                saveAtndGetTransaction(S, amount, account)
+                saveAtndGetTransaction(USE, S, amount, account)
         );
     }
 
     private void validateUseBalance(AccountUser user, Account account, Long amount) {
         if (!Objects.equals(user.getId(), account.getAccountUser().getId())) {
-            throw new AccountException(ErrorCode.USER_ACCOUNT_UN_MATCH);
+            throw new AccountException(USER_ACCOUNT_UN_MATCH);
         }
         if (account.getAccountStatus() != AccountStatus.IN_USE) {
-            throw new AccountException(ErrorCode.ACCOUNT_ALREADY_UNREGISTERED);
+            throw new AccountException(ACCOUNT_ALREADY_UNREGISTERED);
         }
         if (account.getBalance() < amount) {
-            throw new AccountException(ErrorCode.AMOUNT_EXCEED_BALANCE);
+            throw new AccountException(AMOUNT_EXCEED_BALANCE);
         }
     }
 
@@ -77,13 +77,17 @@ public class TransactionService {
         Account account = accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
 
-        saveAtndGetTransaction(F, amount, account);
+        saveAtndGetTransaction(USE, F, amount, account);
     }
 
-    private Transaction saveAtndGetTransaction(TransactionResultType transactionResultType, Long amount, Account account) {
+    private Transaction saveAtndGetTransaction(
+            TransactionType transactionType,
+            TransactionResultType transactionResultType,
+            Long amount,
+            Account account) {
         return transactionRepository.save(
                 Transaction.builder()
-                        .transactionType(USE)
+                        .transactionType(transactionType)
                         .transactionResultType(transactionResultType)
                         .account(account)
                         .amount(amount)
@@ -92,5 +96,59 @@ public class TransactionService {
                         .transactedAt(LocalDateTime.now())
                         .build()
         );
+    }
+
+    @Transactional
+    public TransactionDto cancelBalance(
+            String transactionId,
+            String accountNumber,
+            Long amount
+    ) {
+        Transaction transaction = transactionRepository.findByTransactionId(transactionId)
+                .orElseThrow(() -> new AccountException(TRANSACTION_NOT_FOUND));
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
+
+        validateCancelBalance(transaction, account, amount);
+
+        account.cancelBalance(amount);
+
+        return TransactionDto.fromEntity(
+                saveAtndGetTransaction(CANCEL, S, amount, account)
+        );
+    }
+
+    /**
+     * 거래 아이디에 해당하는 거래가 없는 경우,
+     * 거래금액과 거래 취소 금액이 다른 경우(부분취소 불가) 실패 응답
+     * 1년이 넘은 거래는 사용 취소 불가능
+     * 해당 계좌에서 거래 (사용, 사용 취소) 가 진행 중일 때 - 미구현
+     * 다른 거래 요청이 오는 경우 해당 거래가 동시에 잘못 처리되는 것을 방지해야 한다. - 미구현
+     */
+    private void validateCancelBalance(
+            Transaction transaction,
+            Account account,
+            Long amount
+    ) {
+        if (!Objects.equals(transaction.getAccount().getId(), account.getId())) {
+            throw new AccountException(TRANSACTION_ACCOUNT_UN_MATCH);
+        }
+        if(!Objects.equals(transaction.getAmount(), amount)) {
+            throw new AccountException(CANCEL_MUST_FULLY);
+        }
+        if(transaction.getTransactedAt().isBefore(LocalDateTime.now().minusYears(1))) {
+            throw new AccountException(TOO_OLD_ORDER_TO_CANCEL);
+        }
+    }
+
+    @Transactional
+    public void saveFailedCancelTransaction(
+            String accountNumber,
+            Long amount
+    ) {
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
+
+        saveAtndGetTransaction(CANCEL, F, amount, account);
     }
 }
