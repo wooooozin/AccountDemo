@@ -157,7 +157,7 @@ class AccountServiceTest {
 
     // 실패 케이스
     @Test
-    @DisplayName("해당 유저 없음 - 계좌 해지 실패")
+    @DisplayName("해당 계좌 없음 - 계좌 해지 실패")
     void deleteAccount_UserNotFound() {
         //given
         given(accountUserRepository.findById(anyLong()))
