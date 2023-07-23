@@ -42,8 +42,8 @@ class AccountServiceTest {
     void createAccountSuccess() {
         //given
         AccountUser user = AccountUser.builder()
-                .id(12L)
                 .name("Pobi").build();
+        user.setId(12L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(user));
         given(accountRepository.findFirstByOrderByIdDesc())
@@ -69,8 +69,8 @@ class AccountServiceTest {
     void createFirstAccount() { // 계좌가 없을 떄
         //given
         AccountUser user = AccountUser.builder()
-                .id(12L)
                 .name("Pobi").build();
+        user.setId(12L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(user));
         given(accountRepository.findFirstByOrderByIdDesc())
@@ -113,8 +113,8 @@ class AccountServiceTest {
     void createAccount_maxAccountIs10() {
         //given
         AccountUser user = AccountUser.builder()
-                .id(12L)
                 .name("Pobi").build();
+        user.setId(12L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(user));
         given(accountRepository.countByAccountUser(any()))
@@ -131,8 +131,8 @@ class AccountServiceTest {
     void deleteAccountSuccess() {
         //given
         AccountUser user = AccountUser.builder()
-                .id(12L)
                 .name("Loopy").build();
+        user.setId(12L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(user));
         given(accountRepository.findByAccountNumber(anyString()))
@@ -179,8 +179,8 @@ class AccountServiceTest {
     void deleteAccount_AccountNotFound() {
         //given
         AccountUser user = AccountUser.builder()
-                .id(12L)
                 .name("Loopy").build();
+        user.setId(12L);
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(user));
         given(accountRepository.findByAccountNumber(anyString()))
@@ -204,11 +204,12 @@ class AccountServiceTest {
     void deleteAccountFailed_userUnMatch() {
         //given
         AccountUser loopy = AccountUser.builder()
-                .id(12L)
                 .name("Loopy").build();
+        loopy.setId(12L);
         AccountUser pobi = AccountUser.builder()
-                .id(13L)
                 .name("Pobi").build();
+        pobi.setId(13L);
+
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(loopy));
         given(accountRepository.findByAccountNumber(anyString()))
@@ -235,8 +236,9 @@ class AccountServiceTest {
     void deleteAccountFailed_balanceNotEmpty() {
         //given
         AccountUser loopy = AccountUser.builder()
-                .id(12L)
                 .name("Loopy").build();
+        loopy.setId(12L);
+
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(loopy));
         given(accountRepository.findByAccountNumber(anyString()))
@@ -263,8 +265,9 @@ class AccountServiceTest {
     void deleteAccountFailed_alreadyUnregistered() {
         //given
         AccountUser loopy = AccountUser.builder()
-                .id(12L)
                 .name("Loopy").build();
+        loopy.setId(12L);
+
         given(accountUserRepository.findById(anyLong()))
                 .willReturn(Optional.of(loopy));
         given(accountRepository.findByAccountNumber(anyString()))
@@ -291,8 +294,9 @@ class AccountServiceTest {
     void successGetAccountsByUserId() {
         //given
         AccountUser loopy = AccountUser.builder()
-                .id(12L)
                 .name("Loopy").build();
+        loopy.setId(12L);
+
         List<Account> accounts = Arrays.asList(
                 Account.builder()
                         .accountUser(loopy)

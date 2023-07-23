@@ -3,11 +3,11 @@ package com.example.accountdemo.domain;
 import com.example.accountdemo.exception.AccountException;
 import com.example.accountdemo.type.AccountStatus;
 import com.example.accountdemo.type.ErrorCode;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.ManyToOne;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -17,11 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@EntityListeners(AuditingEntityListener.class)
-public class Account {
-    @Id
-    @GeneratedValue // PK
-    private Long id;
+public class Account extends BaseEntity{
 
     @ManyToOne
     private AccountUser accountUser;
@@ -33,12 +29,6 @@ public class Account {
 
     private LocalDateTime registeredAt;
     private LocalDateTime unRegisteredAt;
-
-
-    @CreatedDate // 자동으로 생성 저장
-    private LocalDateTime createdAt;
-    @LastModifiedBy
-    private LocalDateTime updatedAt;
 
     public void useBalance(Long amount) {
         if (amount > balance) {
