@@ -70,6 +70,9 @@ public class TransactionService {
         if (account.getBalance() < amount) {
             throw new AccountException(AMOUNT_EXCEED_BALANCE);
         }
+        if(amount < 100L || amount > 1000000000L) {
+            throw new AccountException(AMOUNT_MIN_OR_MAX);
+        }
     }
 
     @Transactional
