@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import static com.example.accountdemo.type.ErrorCode.*;
@@ -34,11 +35,10 @@ public class AccountService {
     public AccountDto createAccount(Long userId, Long initialBalance) {
         AccountUser accountUser = getAccountUser(userId);
 
-        // 가장 최근 계좌 + 1 , 없으면 초기값 설정해주
-        String newAccountNumber = accountRepository.findFirstByOrderByIdDesc()
-                .map(account -> (Integer.parseInt(account.getAccountNumber())) + 1 + "")
-                .orElse("1000000000");
+        String newAccountNumber = generateNewAccountNumber(userId);
+
         validateCreatedAccount(accountUser);
+
         return AccountDto.fromEntity(accountRepository.save(
                 Account.builder()
                         .accountUser(accountUser)
@@ -48,6 +48,28 @@ public class AccountService {
                         .registeredAt(LocalDateTime.now())
                         .build()
         ));
+    }
+    /**
+     * 1. 첫번째 숫자는 0이 되지 않도록 한다. (1 ~ 9)
+     * 2. 계정 별로 가장 최근에 생성된 계좌를 확인하고 없다면 랜덤으로 생성된 첫자리 숫자 + 나머지 자릿수 랜덤 숫자
+     * 3. 가장 최근 계좌 또는 새로운 계좌에 + 1
+     * 4. 계좌가 사용중이라면 새로운 랜덤 계좌번호 생성
+     */
+    private String generateNewAccountNumber(Long userId) {
+        AccountUser accountUser = getAccountUser(userId);
+        String newAccountNumber;
+        Random random = new Random();
+        int digit = random.nextInt(9) + 1; // 첫 자리 숫자 범위 1~9, 0이 되지 않게 함
+        do {
+            String accountNumber = accountRepository.findFirstByAccountUserOrderByIdDesc(accountUser)
+                    .map(Account::getAccountNumber)
+                    .orElse(digit + String.format("%09d", random.nextInt(1000000000)));
+
+            long accountNumberLong = Long.parseLong(accountNumber) + 1;
+            newAccountNumber = Long.toString(accountNumberLong);
+            // 전체계좌 조회해서 중복확인
+        } while (accountRepository.findByAccountNumber(newAccountNumber).isPresent());
+        return newAccountNumber;
     }
 
     private void validateCreatedAccount(AccountUser accountUser) {

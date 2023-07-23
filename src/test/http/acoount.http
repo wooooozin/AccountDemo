@@ -6,8 +6,8 @@ POST http://localhost:8080/account
 Content-Type: application/json
 
 {
-  "userId": 1,
-  "initialBalance": 100000
+  "userId": 3,
+  "initialBalance": 200000
 }
 
 
@@ -16,11 +16,11 @@ DELETE http://localhost:8080/account
 Content-Type: application/json
 
 {
-  "userId": 2,
+  "userId": 1,
   "accountNumber": "1000000005"
 }
 
 ### GET request with a header
-GET http://localhost:8080/account?user_id=1
+GET http://localhost:8080/account?user_id=10
 Accept: application/json
 
