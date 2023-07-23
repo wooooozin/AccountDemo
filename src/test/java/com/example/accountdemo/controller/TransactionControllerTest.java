@@ -1,5 +1,6 @@
 package com.example.accountdemo.controller;
 
+import com.example.accountdemo.dto.CancelBalance;
 import com.example.accountdemo.dto.TransactionDto;
 import com.example.accountdemo.dto.UseBalance;
 import com.example.accountdemo.service.TransactionService;
@@ -58,5 +59,32 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.transactionResult").value("S"))
                 .andExpect(jsonPath("$.transactionId").value("transactionId"))
                 .andExpect(jsonPath("$.amount").value(12345));
+    }
+
+    @Test
+    void successCancelBalance() throws Exception {
+        //given
+        given(transactionService.cancelBalance(anyString(), anyString(), anyLong()))
+                .willReturn(TransactionDto.builder()
+                        .accountNumber("1000000000")
+                        .transactionResultType(S)
+                        .amount(54321L)
+                        .transactionId("transactionId")
+                        .transactedAt(LocalDateTime.now())
+                        .build());
+        // when
+
+        // then
+        mockMvc.perform(post("/transaction/cancel")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new CancelBalance.Request("transactionId", "1000000000", 3000L)
+                        ))
+                ).andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accountNumber").value("1000000000"))
+                .andExpect(jsonPath("$.transactionResult").value("S"))
+                .andExpect(jsonPath("$.transactionId").value("transactionId"))
+                .andExpect(jsonPath("$.amount").value(54321));
     }
 }
