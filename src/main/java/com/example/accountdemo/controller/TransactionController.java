@@ -1,15 +1,14 @@
 package com.example.accountdemo.controller;
 
 import com.example.accountdemo.dto.CancelBalance;
+import com.example.accountdemo.dto.QueryTransactionResponse;
 import com.example.accountdemo.dto.UseBalance;
 import com.example.accountdemo.exception.AccountException;
 import com.example.accountdemo.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 잔액 관련 컨트롤러
@@ -70,5 +69,15 @@ public class TransactionController {
             log.error(e.getErrorMessage());
             throw e;
         }
+    }
+
+    @GetMapping("/transaction/{transactionId}")
+    public QueryTransactionResponse queryTransaction(
+        @PathVariable String transactionId
+    ) {
+       return QueryTransactionResponse.from(
+               transactionService.queryTransaction(transactionId
+               )
+       );
     }
 }
