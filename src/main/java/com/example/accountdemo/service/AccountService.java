@@ -80,7 +80,8 @@ public class AccountService {
 
     @Transactional
     public Account getAccount(Long id) {
-        return accountRepository.findById(id).get();
+        return accountRepository.findById(id)
+                .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
     }
 
     @Transactional
